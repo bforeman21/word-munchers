@@ -1,38 +1,338 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #000033;
+  font-family: 'Courier New', monospace;
+  color: white;
+  overflow: hidden;
+}
+
 .App {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #000033;
+}
+
+.game-container {
+  max-width: 1200px;
+  width: 100%;
+  padding: 20px;
+}
+
+/* Menu and Game Over Screens */
+.menu-screen,
+.game-over-screen {
+  text-align: center;
+  background-color: #000066;
+  border: 4px solid #00ffff;
+  border-radius: 10px;
+  padding: 40px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.menu-screen h1,
+.game-over-screen h1 {
+  font-size: 48px;
+  color: #ffff00;
+  text-shadow: 3px 3px #ff00ff;
+  margin-bottom: 20px;
+  letter-spacing: 4px;
+}
+
+.menu-screen p {
+  font-size: 24px;
+  color: #00ffff;
+  margin-bottom: 30px;
+}
+
+.start-button,
+.restart-button {
+  background-color: #00ff00;
+  color: #000033;
+  border: 3px solid #00ffff;
+  padding: 15px 40px;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 5px;
+  font-family: 'Courier New', monospace;
+  transition: all 0.2s;
+}
+
+.start-button:hover,
+.restart-button:hover {
+  background-color: #00ffff;
+  transform: scale(1.05);
+}
+
+.instructions {
+  margin-top: 40px;
+  text-align: left;
+  background-color: #000044;
+  padding: 20px;
+  border: 2px solid #00ffff;
+  border-radius: 5px;
+}
+
+.instructions h3 {
+  color: #ffff00;
+  margin-bottom: 15px;
+  font-size: 20px;
+}
+
+.instructions p {
+  color: #ffffff;
+  margin: 10px 0;
+  font-size: 16px;
+}
+
+.final-score,
+.final-level {
+  font-size: 28px;
+  color: #00ff00;
+  margin: 20px 0;
+}
+
+/* HUD Styles */
+.hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #000066;
+  border: 4px solid #00ffff;
+  padding: 15px 20px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+}
+
+.hud-left {
+  display: flex;
+  gap: 30px;
+}
+
+.hud-item {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.hud-label {
+  color: #00ffff;
+  margin-right: 10px;
+}
+
+.hud-value {
+  color: #ffff00;
+}
+
+.rule-display {
+  flex: 1;
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
+.rule-text {
+  font-size: 22px;
+  color: #ffff00;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.lives-display {
+  display: flex;
+  gap: 5px;
+}
+
+.life-icon {
+  width: 24px;
+  height: 24px;
+  background-color: #00ff00;
+  border: 2px solid #00ffff;
+  border-radius: 3px;
+}
+
+/* Game Board Styles */
+.game-board {
+  position: relative;
+  background-color: #000066;
+  border: 4px solid #ff00ff;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.grid {
+  display: grid;
+  gap: 2px;
+}
+
+.cell {
+  background-color: #0000aa;
+  border: 2px solid #00ffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+  padding: 10px;
+  min-height: 80px;
+  position: relative;
+  transition: all 0.1s;
+}
+
+.cell-word {
+  z-index: 1;
+}
+
+.cell.cleared {
+  background-color: #000044;
+  border-color: #004444;
+}
+
+.cell.cleared .cell-word {
+  opacity: 0.2;
+}
+
+/* Player Styles */
+.player {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
   pointer-events: none;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
+.player-sprite {
+  font-size: 40px;
+  filter: drop-shadow(0 0 5px rgba(0, 255, 0, 0.8));
+  animation: hop 0.5s ease-in-out infinite;
+}
+
+@keyframes hop {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
   }
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+/* Monster Styles */
+.monster {
+  position: absolute;
+  width: 100%;
+  height: 100%;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  z-index: 9;
+  pointer-events: none;
 }
 
-.App-link {
-  color: #61dafb;
+.monster-sprite {
+  font-size: 40px;
+  background-color: #ff0000;
+  border: 3px solid #ffff00;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 0 8px rgba(255, 0, 0, 1));
+  animation: float 1s ease-in-out infinite;
 }
 
-@keyframes App-logo-spin {
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) rotate(-5deg);
+  }
+  50% {
+    transform: translateY(-3px) rotate(5deg);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .hud {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .rule-text {
+    font-size: 18px;
+  }
+
+  .cell {
+    font-size: 14px;
+    min-height: 60px;
+    padding: 5px;
+  }
+
+  .player-sprite,
+  .monster-sprite {
+    font-size: 30px;
+  }
+}
+
+/* Level Complete Screen */
+.level-complete-screen {
+  text-align: center;
+  background-color: #000066;
+  border: 4px solid #00ff00;
+  border-radius: 10px;
+  padding: 40px;
+  max-width: 600px;
+  margin: 0 auto;
+  animation: slideIn 0.3s ease-out;
+}
+
+.level-complete-screen h1 {
+  font-size: 48px;
+  color: #00ff00;
+  text-shadow: 3px 3px #ffff00;
+  margin-bottom: 20px;
+  letter-spacing: 4px;
+  animation: pulse 0.5s ease-in-out infinite;
+}
+
+.complete-score {
+  font-size: 32px;
+  color: #ffff00;
+  margin: 20px 0;
+  font-weight: bold;
+}
+
+.complete-message {
+  font-size: 24px;
+  color: #00ffff;
+  margin-top: 20px;
+}
+
+@keyframes slideIn {
   from {
-    transform: rotate(0deg);
+    transform: translateY(-50px);
+    opacity: 0;
   }
   to {
-    transform: rotate(360deg);
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
   }
 }
