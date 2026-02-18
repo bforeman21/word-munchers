@@ -22,15 +22,16 @@ function App() {
   const GRID_COLS = 6;
   const MONSTER_SPAWN_DELAY = 10000; // 10 seconds in milliseconds
 
-  // Initialize a new level
-  const initializeLevel = useCallback(() => {
+  // Initialize a new level (optional levelOverride when advancing so we use the next level)
+  const initializeLevel = useCallback((levelOverride) => {
+    const effectiveLevel = levelOverride !== undefined ? levelOverride : level;
     // Select a random rule for this level
     const randomRule = rules[Math.floor(Math.random() * rules.length)];
     setCurrentRule(randomRule);
 
     // Generate grid with mix of correct and incorrect answers
     const cells = [];
-    const numCorrect = 8 + Math.floor(level / 3); // More correct answers as level increases
+    const numCorrect = 8 + Math.floor(effectiveLevel / 3); // More correct answers as level increases
     const numIncorrect = (GRID_ROWS * GRID_COLS) - numCorrect;
 
     // Add correct answers
@@ -130,13 +131,8 @@ function App() {
       const clearedCorrect = clearedCells.filter(i => gridCells[i].isCorrect).length + 1;
 
       if (clearedCorrect >= totalCorrect) {
-        // Level complete!
+        // Level complete! Wait for player to click "Let's Go!"
         setGameState('LEVEL_COMPLETE');
-        setTimeout(() => {
-          setLevel(prev => prev + 1);
-          setGameState('PLAYING');
-          initializeLevel();
-        }, 2000); // 2 seconds display time
       }
     } else {
       // Wrong answer!
@@ -217,7 +213,17 @@ function App() {
           <div className="level-complete-screen">
             <h1>Level Complete! 🎉</h1>
             <p className="complete-score">Score: {score}</p>
-            <p className="complete-message">Get ready for Level {level + 1}...</p>
+            <p className="complete-message">Are you ready for the next level?</p>
+            <button
+              onClick={() => {
+                setLevel(prev => prev + 1);
+                setGameState('PLAYING');
+                initializeLevel(level + 1);
+              }}
+              className="lets-go-button"
+            >
+              Let's Go!
+            </button>
           </div>
         )}
 

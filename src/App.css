@@ -53,7 +53,8 @@ body {
 }
 
 .start-button,
-.restart-button {
+.restart-button,
+.lets-go-button {
   background-color: #00ff00;
   color: #000033;
   border: 3px solid #00ffff;
@@ -67,7 +68,8 @@ body {
 }
 
 .start-button:hover,
-.restart-button:hover {
+.restart-button:hover,
+.lets-go-button:hover {
   background-color: #00ffff;
   transform: scale(1.05);
 }
@@ -315,6 +317,11 @@ body {
   font-size: 24px;
   color: #00ffff;
   margin-top: 20px;
+  margin-bottom: 24px;
+}
+
+.level-complete-screen .lets-go-button {
+  margin-top: 10px;
 }
 
 @keyframes slideIn {
