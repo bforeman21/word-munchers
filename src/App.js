@@ -360,13 +360,26 @@ function App() {
                 <p className="no-scores-message">No high scores yet. Play to add one!</p>
               )}
             </div>
-            <button
-              onClick={startGame}
-              className={`restart-button${!scoreSubmitted ? ' inactive' : ''}`}
-              disabled={!scoreSubmitted}
-            >
-              Play Again
-            </button>
+            <div className="game-over-buttons">
+              <button
+                onClick={startGame}
+                className={`restart-button${!scoreSubmitted ? ' inactive' : ''}`}
+                disabled={!scoreSubmitted}
+              >
+                Play Again
+              </button>
+              <button
+                onClick={() => {
+                  setGameState('START');
+                  setScoreSubmitted(false);
+                  setInitials('');
+                }}
+                disabled={!scoreSubmitted}
+                className={`home-page-button${!scoreSubmitted ? ' inactive' : ''}`}
+              >
+                Go Home
+              </button>
+            </div>
           </div>
         )}
       </div>
