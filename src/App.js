@@ -4,6 +4,22 @@ import GameBoard from './components/GameBoard';
 import HUD from './components/HUD';
 import { rules } from './data/rules';
 
+const HIGH_SCORES_KEY = 'wordMunchersHighScores';
+const MAX_HIGH_SCORES = 10;
+
+function loadHighScores() {
+  try {
+    const stored = localStorage.getItem(HIGH_SCORES_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return Array.isArray(parsed) ? parsed : [];
+    }
+  } catch (e) {
+    // ignore
+  }
+  return [];
+}
+
 function App() {
   // Game state
   const [level, setLevel] = useState(1);
@@ -16,6 +32,11 @@ function App() {
   const [gridCells, setGridCells] = useState([]);
   const [clearedCells, setClearedCells] = useState([]);
   const [gameStartTime, setGameStartTime] = useState(null);
+
+  // High scores (persisted in localStorage)
+  const [highScores, setHighScores] = useState(() => loadHighScores());
+  const [initials, setInitials] = useState('');
+  const [scoreSubmitted, setScoreSubmitted] = useState(false);
 
   // Game configuration
   const GRID_ROWS = 5;
@@ -66,7 +87,30 @@ function App() {
     setScore(0);
     setLives(3);
     setLevel(1);
+    setScoreSubmitted(false);
+    setInitials('');
     initializeLevel();
+  };
+
+  // Add a score to high scores (top 10, sorted by score descending)
+  const addHighScore = (initialsStr, scoreValue) => {
+    const trimmed = initialsStr.slice(0, 3).toUpperCase().replace(/[^A-Z]/g, '');
+    if (!trimmed) return;
+    const next = [...highScores, { initials: trimmed, score: scoreValue }]
+      .sort((a, b) => b.score - a.score)
+      .slice(0, MAX_HIGH_SCORES);
+    setHighScores(next);
+    try {
+      localStorage.setItem(HIGH_SCORES_KEY, JSON.stringify(next));
+    } catch (e) {
+      // ignore
+    }
+    setScoreSubmitted(true);
+  };
+
+  const handleInitialsChange = (e) => {
+    const val = e.target.value.replace(/[^a-zA-Z]/g, '').slice(0, 3).toUpperCase();
+    setInitials(val);
   };
 
   // Spawn monsters after delay
@@ -183,6 +227,30 @@ function App() {
               <p>Eat only the correct answers!</p>
               <p>Avoid the monsters!</p>
             </div>
+            <div className="high-scores-section">
+              <h3>High Scores</h3>
+              <table className="high-scores-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Initials</th>
+                    <th>Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {highScores.slice(0, MAX_HIGH_SCORES).map((entry, index) => (
+                    <tr key={`${entry.initials}-${entry.score}-${index}`}>
+                      <td>{index + 1}</td>
+                      <td>{entry.initials}</td>
+                      <td>{entry.score}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {highScores.length === 0 && (
+                <p className="no-scores-message">No high scores yet. Play to add one!</p>
+              )}
+            </div>
           </div>
         )}
 
@@ -232,7 +300,71 @@ function App() {
             <h1>Game Over!</h1>
             <p className="final-score">Final Score: {score}</p>
             <p className="final-level">Level Reached: {level}</p>
-            <button onClick={startGame} className="restart-button">
+            {!scoreSubmitted ? (
+              <div className="high-score-entry">
+                <label htmlFor="initials-input">Enter your initials (3 letters):</label>
+                <input
+                  id="initials-input"
+                  type="text"
+                  maxLength={3}
+                  value={initials}
+                  onChange={handleInitialsChange}
+                  placeholder="AAA"
+                  className="initials-input"
+                  autoComplete="off"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setGameState('START');
+                    setScoreSubmitted(false);
+                    setInitials('');
+                  }}
+                  className="skip-button"
+                >
+                  Skip
+                </button>
+                <button
+                  type="button"
+                  onClick={() => addHighScore(initials, score)}
+                  disabled={initials.length < 1}
+                  className="submit-score-button"
+                >
+                  Add to High Scores
+                </button>
+              </div>
+            ) : (
+              <p className="score-saved-message">Score saved!</p>
+            )}
+            <div className="high-scores-section">
+              <h3>High Scores</h3>
+              <table className="high-scores-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Initials</th>
+                    <th>Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {highScores.slice(0, MAX_HIGH_SCORES).map((entry, index) => (
+                    <tr key={`${entry.initials}-${entry.score}-${index}`}>
+                      <td>{index + 1}</td>
+                      <td>{entry.initials}</td>
+                      <td>{entry.score}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {highScores.length === 0 && (
+                <p className="no-scores-message">No high scores yet. Play to add one!</p>
+              )}
+            </div>
+            <button
+              onClick={startGame}
+              className={`restart-button${!scoreSubmitted ? ' inactive' : ''}`}
+              disabled={!scoreSubmitted}
+            >
               Play Again
             </button>
           </div>
