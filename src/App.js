@@ -3,9 +3,23 @@ import './App.css';
 import GameBoard from './components/GameBoard';
 import HUD from './components/HUD';
 import { rules } from './data/rules';
+import { getSpanishMeaning } from './data/spanishTranslations';
 
 const HIGH_SCORES_KEY = 'wordMunchersHighScores';
 const MAX_HIGH_SCORES = 10;
+
+const SUBJECT_OPTIONS = [
+  { value: '', label: 'Select One' },
+  { value: 'all', label: 'All Subjects' },
+  { value: 'spelling', label: 'Spelling' },
+  { value: 'grammar', label: 'Grammar' },
+  { value: 'spanish', label: 'Spanish' }
+];
+
+function getRulesForSubject(subject) {
+  if (!subject || subject === 'all') return subject === 'all' ? rules : [];
+  return rules.filter((r) => r.category === subject);
+}
 
 function loadHighScores() {
   try {
@@ -38,6 +52,14 @@ function App() {
   const [initials, setInitials] = useState('');
   const [scoreSubmitted, setScoreSubmitted] = useState(false);
 
+  // Subject selection (Spelling, Grammar, Spanish, All Subjects)
+  const [selectedSubject, setSelectedSubject] = useState('');
+
+  // Teaching prompts: wrong-answer feedback and hints (pause game while shown)
+  const [feedbackMessage, setFeedbackMessage] = useState(null);
+  const [hintMessage, setHintMessage] = useState(null);
+  const [hintsRemaining, setHintsRemaining] = useState(3);
+
   // Game configuration
   const GRID_ROWS = 5;
   const GRID_COLS = 6;
@@ -46,8 +68,13 @@ function App() {
   // Initialize a new level (optional levelOverride when advancing so we use the next level)
   const initializeLevel = useCallback((levelOverride) => {
     const effectiveLevel = levelOverride !== undefined ? levelOverride : level;
-    // Select a random rule for this level
-    const randomRule = rules[Math.floor(Math.random() * rules.length)];
+    const subjectRules = getRulesForSubject(selectedSubject);
+    if (subjectRules.length === 0) {
+      setCurrentRule({ rule: 'No content for this subject', correctAnswers: [], incorrectAnswers: [] });
+      setGridCells([]);
+      return;
+    }
+    const randomRule = subjectRules[Math.floor(Math.random() * subjectRules.length)];
     setCurrentRule(randomRule);
 
     // Generate grid with mix of correct and incorrect answers
@@ -79,7 +106,7 @@ function App() {
     setPlayerPosition({ row: 2, col: 2 }); // Center of grid
     setMonsters([]);
     setGameStartTime(Date.now());
-  }, [level]);
+  }, [level, selectedSubject]);
 
   // Start the game
   const startGame = () => {
@@ -89,6 +116,9 @@ function App() {
     setLevel(1);
     setScoreSubmitted(false);
     setInitials('');
+    setFeedbackMessage(null);
+    setHintMessage(null);
+    setHintsRemaining(3);
     initializeLevel();
   };
 
@@ -154,8 +184,37 @@ function App() {
     return () => clearTimeout(timer);
   }, [gameState, gameStartTime, level, GRID_COLS, GRID_ROWS]);
 
+  // Hint: press H to show a teaching hint (3 per game)
+  useEffect(() => {
+    if (gameState !== 'PLAYING' || hintsRemaining <= 0 || feedbackMessage || hintMessage) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key !== 'h' && e.key !== 'H') return;
+      e.preventDefault();
+      const stillVisibleCorrect = gridCells
+        .map((cell, index) => (cell.isCorrect && !clearedCells.includes(index) ? { word: cell.word } : null))
+        .filter(Boolean);
+      if (stillVisibleCorrect.length === 0) return;
+
+      const pick = stillVisibleCorrect[Math.floor(Math.random() * stillVisibleCorrect.length)];
+      const word = pick.word;
+      const isSpanish = currentRule?.category === 'spanish';
+      const meaning = isSpanish ? getSpanishMeaning(word) : undefined;
+      const message = isSpanish && meaning
+        ? `"${word}" is the Spanish word for ${meaning}.`
+        : `One correct answer is "${word}".`;
+      setHintMessage(message);
+      setHintsRemaining((prev) => prev - 1);
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [gameState, hintsRemaining, feedbackMessage, hintMessage, gridCells, clearedCells, currentRule?.category]);
+
   // Handle eating a cell
   const eatCell = () => {
+    if (feedbackMessage || hintMessage) return;
+
     const cellIndex = playerPosition.row * GRID_COLS + playerPosition.col;
     
     // Check if cell is already cleared
@@ -179,7 +238,14 @@ function App() {
         setGameState('LEVEL_COMPLETE');
       }
     } else {
-      // Wrong answer!
+      // Wrong answer: show teaching prompt, then apply penalty
+      const isSpanish = currentRule?.category === 'spanish';
+      const translation = isSpanish ? getSpanishMeaning(cell.word) : undefined;
+      const message = isSpanish && translation
+        ? `Sorry, this word means ${translation}.`
+        : 'Sorry, this is not correct.';
+      setFeedbackMessage(message);
+
       setScore(prevScore => Math.max(0, prevScore - 10));
       setLives(prevLives => prevLives - 1);
       
@@ -217,15 +283,37 @@ function App() {
           <div className="menu-screen">
             <h1>Word Munchers</h1>
             <p>Learn Spelling, Grammar & Spanish!</p>
-            <button onClick={startGame} className="start-button">
-              Start Game
-            </button>
+            <div className="menu-start-row">
+              <div className="subject-selection">
+                <label htmlFor="subject-select">Pick a Subject:</label>
+                <select
+                  id="subject-select"
+                  value={selectedSubject}
+                  onChange={(e) => setSelectedSubject(e.target.value)}
+                  className="subject-select"
+                >
+                  {SUBJECT_OPTIONS.map((opt) => (
+                    <option key={opt.value || 'placeholder'} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button
+                onClick={startGame}
+                disabled={!selectedSubject}
+                className="start-button start-button-small"
+              >
+                Start Game
+              </button>
+            </div>
             <div className="instructions">
               <h3>How to Play:</h3>
               <p>Use arrow keys to move</p>
               <p>Press SPACE to eat a word</p>
               <p>Eat only the correct answers!</p>
               <p>Avoid the monsters!</p>
+              <p>Press H for a hint (3 per game)</p>
             </div>
             <div className="high-scores-section">
               <h3>High Scores</h3>
@@ -261,6 +349,7 @@ function App() {
               score={score}
               lives={lives}
               rule={currentRule?.rule || ''}
+              hintsRemaining={hintsRemaining}
             />
             <GameBoard
               rows={GRID_ROWS}
@@ -273,7 +362,28 @@ function App() {
               setMonsters={setMonsters}
               onEatCell={eatCell}
               gameState={gameState}
+              paused={!!(feedbackMessage || hintMessage)}
             />
+            {feedbackMessage && (
+              <div className="teaching-modal-overlay">
+                <div className="teaching-modal">
+                  <p className="teaching-modal-message">{feedbackMessage}</p>
+                  <button type="button" className="resume-level-button" onClick={() => setFeedbackMessage(null)}>
+                    Resume Level
+                  </button>
+                </div>
+              </div>
+            )}
+            {hintMessage && (
+              <div className="teaching-modal-overlay">
+                <div className="teaching-modal">
+                  <p className="teaching-modal-message">{hintMessage}</p>
+                  <button type="button" className="resume-level-button" onClick={() => setHintMessage(null)}>
+                    Resume Level
+                  </button>
+                </div>
+              </div>
+            )}
           </>
         )}
 

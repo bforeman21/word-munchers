@@ -22,13 +22,14 @@ function GameBoard({
   monsters,
   setMonsters,
   onEatCell,
-  gameState
+  gameState,
+  paused = false
 }) {
   const boardRef = useRef(null);
 
-  // Handle keyboard input for player movement
+  // Handle keyboard input for player movement (and H for hint is handled in App)
   useEffect(() => {
-    if (gameState !== 'PLAYING') return;
+    if (gameState !== 'PLAYING' || paused) return;
 
     const handleKeyDown = (e) => {
       // Prevent default scrolling behavior
@@ -71,11 +72,11 @@ function GameBoard({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [gameState, rows, cols, setPlayerPosition, onEatCell]);
+  }, [gameState, paused, rows, cols, setPlayerPosition, onEatCell]);
 
-  // Monster AI - move toward player
+  // Monster AI - move toward player (paused when teaching modal is open)
   useEffect(() => {
-    if (gameState !== 'PLAYING' || monsters.length === 0) return;
+    if (gameState !== 'PLAYING' || paused || monsters.length === 0) return;
 
     const moveMonsters = () => {
       setMonsters(prevMonsters => 
@@ -113,7 +114,7 @@ function GameBoard({
     // Move monsters every 800ms (adjust for difficulty)
     const interval = setInterval(moveMonsters, 800);
     return () => clearInterval(interval);
-  }, [gameState, monsters.length, playerPosition, setMonsters]);
+  }, [gameState, paused, monsters.length, playerPosition, setMonsters]);
 
   return (
     <div className="game-board" ref={boardRef}>

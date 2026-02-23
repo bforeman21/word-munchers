@@ -9,7 +9,7 @@ import React from 'react';
  * - Current rule/category
  * - Lives remaining
  */
-function HUD({ level, score, lives, rule }) {
+function HUD({ level, score, lives, rule, hintsRemaining = 0 }) {
   return (
     <div className="hud">
       <div className="hud-left">
@@ -20,6 +20,10 @@ function HUD({ level, score, lives, rule }) {
         <div className="hud-item">
           <span className="hud-label">SCORE:</span>
           <span className="hud-value">{score}</span>
+        </div>
+        <div className="hud-item" title="Press H for a hint">
+          <span className="hud-label">HINTS:</span>
+          <span className="hud-value">{hintsRemaining}</span>
         </div>
       </div>
 

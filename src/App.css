@@ -52,6 +52,61 @@ body {
   margin-bottom: 30px;
 }
 
+.subject-selection {
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.menu-start-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.subject-selection label {
+  color: #ffff00;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.subject-select {
+  padding: 10px 16px;
+  font-size: 18px;
+  font-family: 'Courier New', monospace;
+  background-color: #000033;
+  color: #00ff00;
+  border: 3px solid #00ffff;
+  border-radius: 5px;
+  cursor: pointer;
+  min-width: 200px;
+}
+
+.subject-select:focus {
+  outline: none;
+  border-color: #ffff00;
+}
+
+.start-button.start-button-small {
+  padding: 10px 28px;
+  font-size: 18px;
+  margin-bottom: 0;
+}
+
+.start-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.start-button:disabled:hover {
+  background-color: #00ff00;
+  transform: none;
+}
+
 .start-button,
 .restart-button,
 .lets-go-button {
@@ -292,6 +347,52 @@ body {
   font-size: 20px;
   margin: 16px 0;
   font-weight: bold;
+}
+
+/* Teaching modals (wrong-answer feedback & hints) */
+.teaching-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.teaching-modal {
+  background-color: #000066;
+  border: 4px solid #00ffff;
+  border-radius: 10px;
+  padding: 28px 32px;
+  max-width: 420px;
+  text-align: center;
+  box-shadow: 0 0 24px rgba(0, 255, 255, 0.3);
+}
+
+.teaching-modal-message {
+  font-size: 20px;
+  color: #ffffff;
+  margin: 0 0 20px 0;
+  line-height: 1.4;
+}
+
+.resume-level-button {
+  background-color: #00ff00;
+  color: #000033;
+  border: 3px solid #00ffff;
+  padding: 12px 28px;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 5px;
+  font-family: 'Courier New', monospace;
+  transition: all 0.2s;
+}
+
+.resume-level-button:hover {
+  background-color: #00ffff;
+  transform: scale(1.05);
 }
 
 /* HUD Styles */
