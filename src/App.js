@@ -202,7 +202,7 @@ function App() {
       const meaning = isSpanish ? getSpanishMeaning(word) : undefined;
       const message = isSpanish && meaning
         ? `"${word}" is the Spanish word for ${meaning}.`
-        : `One correct answer is "${word}".`;
+        : `One correct answer is "${word}."`;
       setHintMessage(message);
       setHintsRemaining((prev) => prev - 1);
     };
