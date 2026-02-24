@@ -65,16 +65,18 @@ function App() {
   const GRID_COLS = 6;
   const MONSTER_SPAWN_DELAY = 10000; // 10 seconds in milliseconds
 
-  // Initialize a new level (optional levelOverride when advancing so we use the next level)
-  const initializeLevel = useCallback((levelOverride) => {
+  // Initialize a new level (optional levelOverride and subjectOverride to avoid stale closure)
+  const initializeLevel = useCallback((levelOverride, subjectOverride) => {
     const effectiveLevel = levelOverride !== undefined ? levelOverride : level;
-    const subjectRules = getRulesForSubject(selectedSubject);
+    const subject = subjectOverride !== undefined ? subjectOverride : selectedSubject;
+    const subjectRules = getRulesForSubject(subject);
     if (subjectRules.length === 0) {
       setCurrentRule({ rule: 'No content for this subject', correctAnswers: [], incorrectAnswers: [] });
       setGridCells([]);
       return;
     }
-    const randomRule = subjectRules[Math.floor(Math.random() * subjectRules.length)];
+    const randomIndex = Math.floor(Math.random() * subjectRules.length);
+    const randomRule = subjectRules[randomIndex];
     setCurrentRule(randomRule);
 
     // Generate grid with mix of correct and incorrect answers
@@ -119,7 +121,7 @@ function App() {
     setFeedbackMessage(null);
     setHintMessage(null);
     setHintsRemaining(3);
-    initializeLevel();
+    initializeLevel(1, selectedSubject);
   };
 
   // Add a score to high scores (top 10, sorted by score descending)
@@ -394,9 +396,10 @@ function App() {
             <p className="complete-message">Are you ready for the next level?</p>
             <button
               onClick={() => {
+                const nextLevel = level + 1;
                 setLevel(prev => prev + 1);
                 setGameState('PLAYING');
-                initializeLevel(level + 1);
+                initializeLevel(nextLevel, selectedSubject);
               }}
               className="lets-go-button"
             >
