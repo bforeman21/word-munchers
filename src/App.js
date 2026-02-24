@@ -65,8 +65,8 @@ function App() {
   const GRID_COLS = 6;
   const MONSTER_SPAWN_DELAY = 10000; // 10 seconds in milliseconds
 
-  // Initialize a new level (optional levelOverride and subjectOverride to avoid stale closure)
-  const initializeLevel = useCallback((levelOverride, subjectOverride) => {
+  // Initialize a new level (optional levelOverride, subjectOverride, and previousRule to avoid repeats)
+  const initializeLevel = useCallback((levelOverride, subjectOverride, previousRule) => {
     const effectiveLevel = levelOverride !== undefined ? levelOverride : level;
     const subject = subjectOverride !== undefined ? subjectOverride : selectedSubject;
     const subjectRules = getRulesForSubject(subject);
@@ -75,8 +75,13 @@ function App() {
       setGridCells([]);
       return;
     }
-    const randomIndex = Math.floor(Math.random() * subjectRules.length);
-    const randomRule = subjectRules[randomIndex];
+    // Avoid repeating the same rule on consecutive levels (for any subject)
+    const rulesToPick =
+      previousRule && subjectRules.length > 1
+        ? subjectRules.filter((r) => r.rule !== previousRule.rule)
+        : subjectRules;
+    const randomIndex = Math.floor(Math.random() * rulesToPick.length);
+    const randomRule = rulesToPick[randomIndex];
     setCurrentRule(randomRule);
 
     // Generate grid with mix of correct and incorrect answers
@@ -399,7 +404,7 @@ function App() {
                 const nextLevel = level + 1;
                 setLevel(prev => prev + 1);
                 setGameState('PLAYING');
-                initializeLevel(nextLevel, selectedSubject);
+                initializeLevel(nextLevel, selectedSubject, currentRule);
               }}
               className="lets-go-button"
             >
